@@ -234,7 +234,7 @@
     \end{minted}
 \end{frame}
 
-\begin{frame}[fragile]{Branch with if}
+\begin{frame}[fragile]{Branch with \emph{if}}
     \begin{itemize}
         \item We have already seen the \emph{if} special form
         \item It consists of a test, a then expression and an optional else expression
@@ -250,18 +250,49 @@
 \end{frame}
 
 \begin{frame}[fragile]{\emph{do} multiple things}
+    \begin{itemize}
+        \item Evaluates multiple expressions and returns the value of the last one (or nil)
+    \end{itemize}
+    \begin{minted}{clojure}
+    (if (< 3 4) 
+        (do 
+            (println "hello world") 
+            (println "and again")))
+    -> hello world
+       and again
+    \end{minted}
 \end{frame}
 
 \begin{frame}[fragile]{Bind with let}
     \begin{itemize}
             \item Of course we also need to bind local variables inside expressions
             \item The \emph{let} special form is used for that
+            \item It uses pairs inside a vector for that purpose
+            \item Has support for Destructering
     \end{itemize}
+    \begin{minted}{clojure}
+    (let [x 1] x)
+    -> 1
+    ;basic Destructering
+    (let [[x y] [1 2]] (+ x y))
+    -> 3
+    \end{minted}
 \end{frame}
 
 \begin{frame}[fragile]{Loop with ... well ... loop}
     \begin{itemize}
-            \item A function
+        \item We have seen recursion, now we will cover iteration with the \emph{loop} special form
+        \item The \emph{loop} form is very similiar to a \emph{let} binding
+        \item To repeat we use \emph{recur} just like when working with tail recursion earlier
+    \end{itemize}
+    \begin{minted}{clojure}
+    (loop [x 10] 
+      (if (> x 1)
+        (recur (- x 2))))
+    \end{minted}
+    \begin{itemize}
+        \item There are other types of loops in clojure, like \emph{for} and \emph{while}, but they are implemented as macros
+        \item \emph{loop} and \emph{recur} is therefore all we need!
     \end{itemize}
 \end{frame}
 
