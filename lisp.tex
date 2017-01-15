@@ -1,19 +1,19 @@
 \documentclass[10pt]{beamer}
-
-\usepackage[utf8]{inputenc}
-
+\usepackage{minted}
 \usepackage{graphicx}
 \usetheme{metropolis}
 \usepackage{appendixnumberbeamer}
 
-\usepackage{booktabs}
-\usepackage[scale=2]{ccicons}
+\usepackage{booktabs} \usepackage[scale=2]{ccicons}
 
 \usepackage{pgfplots}
 \usepgfplotslibrary{dateplot}
 
 \usepackage{xspace}
 \newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
+\usepackage{fontspec}
+
+\setmonofont{Fira Mono}
 
 \title{LISP}
 \subtitle{A Programmable Programming Language}
@@ -35,10 +35,11 @@
 
 \begin{frame}{Timeless}
     \begin{itemize}
+        \item When we talk about Lisp we talk about a language family
         \item One of the oldest ($\sim 1958$) language families still in use today (only Fortran is older)
         \item The Syntax is by its very nature timeless
     \end{itemize}
-        \includegraphics[width=0.7\textwidth]{img/history.png}
+    \centering{\includegraphics[width=0.7\textwidth]{img/history.png}}
 \end{frame}
 
 
@@ -47,35 +48,272 @@
 \begin{frame}{Innovator}
     \begin{itemize}
         \item Garbage Collection
-        \item Homoiconicity
+        \item Homoiconicity (Code is Data)
+        \item Higher Order Functions
+        \item Dynamic Typing
         \item Read Evaluate Print Loop (REPL)
-        \item Incremental Compilation (compiled and interpreted functions can intermix freely)
+        \item Multiple Dispatch
+        \item And many more ...
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Scheme - A Language for Teaching}
     \begin{itemize}
-        \item Scheme was used as a introductory Language in famous Universities like MIT (6.001)
+        \item Scheme was used as an introductory Language in famous Universities like MIT (6.001)
         \item Extremely small language core
-        \item TODO image
+        \item Great for learning to build your own abstractions 
+    \end{itemize}
+    \centering{\includegraphics[width=0.3\textwidth]{img/scheme.jpeg}}
+\end{frame}
+
+\begin{frame}{Picking a Language for this Talk}
+    Lets look at the most popular Lisp dialects on GitHub (provided by GitHut):
+    \begin{center}
+        \begin{tabular}{ | l | l | }
+            \hline
+            \textbf{GitHub Popuplarity Rank} & \textbf{Language} \\ \hline
+            20 & Emacs Lisp \\ \hline
+            23 & \textbf{Clojure} \\ \hline
+            40 & \textbf{Scheme} \\ \hline
+            42 & Common Lisp \\ \hline
+            48 & Racket \\
+            \hline
+        \end{tabular}
+    \end{center}
+
+    Clojure with its JVM heritage and Scheme with its focus on a small core will be used throughout this talk.
+\end{frame}
+
+\section{The Basics of Lisp}
+
+\begin{frame}[fragile]{The name giving lists}
+    \begin{itemize}
+        \item The basis of lisp is the s(ymbolic)-expression
+        \item Either a atom or a list
+        \item Atoms are either symbols or literals
+        \item Every element of a list is either an atom or another list
+        \item Elements are separated by whitespace
+        \item The first element of a (to be evaluated) list has to be what we will call a \emph{verb} in this talk
+    \end{itemize}
+    \begin{minted}{clojure}
+        ;atoms
+        x
+        12
+        ;lists
+        (+ 1 2 3)
+        (+ (* 2 3) 3)
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{What is a verb?}
+    \begin{itemize}
+        \item A verb is either a
+        \begin{itemize}
+            \item A function
+            \item A macro
+            \item A special form
+        \end{itemize}
+        \item Special forms include \emph{if, fn, loop, recur etc.}
+        \item They are built into the language and cannot be user defined
+        \item On the other hand functions and macros can be
+        \item Since functions are familiar to most people we will start with them
     \end{itemize}
 \end{frame}
 
-\section{A bit of History}
+\begin{frame}[fragile]{Calling Functions}
+    \begin{itemize}
+            \item The arguments of functions are evaluated before they are passed to the function
+            \item This is an important distinction from macros/special forms
+            \item Calling functions in a prefix manner might feel strange in the beginning 
+    \end{itemize}
+    \begin{minted}{clojure}
+        ;the + function called as a 
+        ;prefix and not as an infix
+        (+ 1 2 3)
+        ;the infamous
+        (println "hello world")
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Calling Java Methods -- Clojure Only}
+    \begin{itemize}
+        \item Since Clojure runs on the JVM, interop with Java is necessary to make use of existing libraries
+        \item Java Methods are called like (.instanceMember instance args*)
+    \end{itemize}
+    \begin{minted}{clojure}
+        (.toUpperCase "Hello World")
+        -> "HELLO WORLD"
+    \end{minted}
+    \begin{itemize}
+        \item Creating a new Instance will be very familiar to Java Developers
+        \item There is however a short form for creating new instances
+    \end{itemize}
+    \begin{minted}{clojure}
+        (new String "hello world")
+        -> "hello world"
+        (String. "hello world")
+        -> "hello world"
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Just a bit more Syntax}
+    \begin{itemize}
+            \item Before we will learn how to create our own functions a bit more syntastic sugar
+            \item Vectors are the data structure in Clojure that are used to define the arguments of a function
+    \end{itemize}
+    \begin{minted}{clojure}
+    [1 2 3]
+    -> [1 2 3]
+    (vector 1 2 3)
+    -> [1 2 3]
+    \end{minted}
+    \begin{itemize}
+            \item Maps/Dictionaries are created via the curly brace literal
+    \end{itemize}
+    \begin{minted}{clojure}
+    {"a" 1 "b" 2 "c" 3}; or (hash-map ...)
+    -> {"a" 1, "b" 2, "c" 3}
+    ; note the comma, comma is whitespace in Clojure
+    \end{minted}
+    \begin{itemize}
+            \item These are implemented via so called reader macros we will learn about them in the macro section
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Define your own Functions - 1}
+    \begin{itemize}
+        \item The special form \emph{fn} is used to create functions
+    \end{itemize}
+    \begin{minted}{clojure}
+    (fn [x] (* x x))
+    -> #function[user/eval10725/fn--10726]
+    ((fn [x] (* x x)) 12)
+    -> 144
+    \end{minted}
+    \begin{itemize}
+        \item An optional name can be given to the function to make non tail calls
+    \end{itemize}
+    \begin{minted}{clojure}
+    ((fn foo [x] (if (< x 1) x (foo (dec x)))) 10)
+    -> 0
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Define your own Functions - 2}
+    \begin{itemize}
+        \item to make a tail recursive call the \emph{recur} special form is used
+    \end{itemize}
+    \begin{minted}{clojure}
+    ((fn [x] (if (< x 1) x (recur (dec x)))) 10)
+    \end{minted}
+    \begin{itemize}
+        \item Since functions will often be bound to a global variable (inside a namespace) the following syntax will be seen often
+    \end{itemize}
+    \begin{minted}{clojure}
+    (defn foo "doc string here" [x]
+      (if (< x 1) 
+        x 
+        (foo (dec x)))) 
+    -> #'user/foo
+    (foo 10)
+    -> 0
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Define your own Functions - 3}
+    \begin{itemize}
+        \item For short lambda functions there is an even more compact notation
+        \item inside the lambda function \% is used to for arguments
+        \item \% and \%1 are used for the first argument, \%2 ... for the rest
+    \end{itemize}
+    \begin{minted}{clojure}
+    #(* % %)
+    -> #function[user/eval10725/fn--10726]
+    (map #(* % %) (range 10))
+    -> (0 1 4 9 16 25 36 49 64 81)
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Branch with if}
+    \begin{itemize}
+        \item We have already seen the \emph{if} special form
+        \item It consists of a test, a then expression and an optional else expression
+        \item \emph{if} can be used like a ternary expression in Java
+    \end{itemize}
+    \begin{minted}{clojure}
+    (println (if (< 4 3) "hello" "world"))
+    -> world
+    \end{minted}
+    \begin{minted}{Java}
+    System.out.println(4 < 3 ? "hello" : "world")
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{\emph{do} multiple things}
+\end{frame}
+
+\begin{frame}[fragile]{Bind with let}
+    \begin{itemize}
+            \item Of course we also need to bind local variables inside expressions
+            \item The \emph{let} special form is used for that
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Loop with ... well ... loop}
+    \begin{itemize}
+            \item A function
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Your new best friends \emph{doc} and \emph{source}}
+    \begin{itemize}
+            \item A function
+    \end{itemize}
+\end{frame}
 
 \section{Macros in Action}
+
+\begin{frame}{Kinds of Macros}
+    Macros can be grouped in different Categories
+    \begin{itemize}
+        \item Syntactic Sugar Macros - Using simple pattern matching and templates
+        \item Complex Transformations - The most demanding and the most rewarding
+        \item Reader Macros - Syntactic sugar on the reader level, not to be confused with the other two
+    \end{itemize}
+\end{frame}
+
+%(defmacro unless [pred then else] `(if ~pred ~else ~then))
+
+\begin{frame}{Deep Understanding}
+    Clojure provides a deep understanding of the language through macros and functions like \emph{doc}, \emph{source} and \emph{macroexpand}. This should not be taken for granted, especially when compared to languages like e.g. C++.
+\end{frame}
+
+\begin{frame}{C++ - The worst Offender}
+    \begin{quote}
+        Help me sort out the meaning of "\{\}" as a constructor argument
+    \end{quote}
+    \hspace*\fill{-- Scott Meyers, Author of \emph{Effective C++}}
+    \inputminted[fontsize=\footnotesize]{cpp}{scott.cpp}
+\end{frame}
+
+\begin{frame}{C++ - The worst Offender}
+    \begin{itemize}
+            \item The specific example can be looked up on Scott Meyers Blog
+            \item The last call does \emph{not} create an empty list
+            \item Even a seasoned C++ expert and book author can't figure out seemingly simple examples
+    \end{itemize}
+\end{frame}
+
+\section{Tools and Platforms}
+
+\section{Literature and more obscure Lisp dialects}
+
+\section{Why it never (really) caught on}
 
 \begin{frame}[standout]
   Questions?
 \end{frame}
 
-\appendix
-
-\begin{frame}[allowframebreaks]{References}
-
-  %\bibliography{lisp}
-  %\bibliographystyle{abbrv}
-
-\end{frame}
+\section{Bonus - A bit of History}
 
 \end{document}
