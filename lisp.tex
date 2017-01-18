@@ -298,8 +298,25 @@
 
 \begin{frame}[fragile]{Your new best friends \emph{doc} and \emph{source}}
     \begin{itemize}
-            \item A function
+        \item \emph{doc} will show you the docstring of a given function, macro or special form
     \end{itemize}
+    \begin{minted}{clojure}
+    (doc +)
+    -> ([] [x] [x y] [x y & more])
+       Returns the sum of nums. (+) returns 0. 
+       Does not auto-promote longs,
+       will throw on overflow. See also +'
+    \end{minted}
+    \begin{itemize}
+        \item \emph{source} will show you the source code of a given function or macro
+    \end{itemize}
+    \begin{minted}{clojure}
+    (source when)
+    -> (defmacro when
+         ".. doc string ..."
+         [test & body]
+         (list 'if test (cons 'do body)))
+    \end{minted}
 \end{frame}
 
 \section{Macros in Action}
@@ -311,6 +328,183 @@
         \item Complex Transformations - The most demanding and the most rewarding
         \item Reader Macros - Syntactic sugar on the reader level, not to be confused with the other two
     \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Yes Code really is Data}
+    \begin{itemize}
+        \item Code really is nothing more than a linked list
+    \end{itemize}
+    \begin{minted}{clojure}
+    (type '(+ 1 2 3))
+    -> clojure.lang.PersistentList
+    \end{minted}
+    \begin{itemize}
+        \item The ' is used to \textbf{prevent} evaluation, it is equivalent to \emph{(quote ...)}
+        \item The function \emph{eval} (may be familiar from a lot of scripting languages) takes a s-expression, not a string!
+    \end{itemize}
+    \begin{minted}{clojure}
+    (eval '(+ 1 2 3))
+    -> 6
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Reader Macros}
+    \begin{itemize}
+        \item To get s-expression from a string, the \emph{read-string} function can be used
+    \end{itemize}
+    \begin{minted}{clojure}
+    (eval (read-string "(+ 1 2 3)"))
+    -> 6
+    \end{minted}
+    \begin{itemize}
+        \item The reader uses read macros to parse special syntax like [], the ' or the lambda \#() syntax
+        \item Clojure has a set of predefined reader macros, they can not be user defined
+        \item Some lisps (e.g. Common Lisp or Racket) don't suffer from this restriction
+        \item That means that theses lisp dialects have compile time + parse time macros 
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{The syntax quote}
+    \begin{itemize}
+        \item Before we will look at macros, we will introduce the syntax-quote
+        \item It helps us evaluating things in nested quoted structeres
+    \end{itemize}
+    \begin{minted}{clojure}
+    ; ` is a syntax quote
+    ; ~ evaluates inside such quote
+    `(foo ~(+ 1 2 3))
+    -> (user/foo 6)
+    \end{minted}
+    \begin{itemize}
+        \item Everything that is not evaluated through the tilde character will be left alone (only the current namespace is added)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Macros}
+    \begin{itemize}
+        \item Macros are arbitrary lisp code executed at compile time
+        \item Normally only code transformation is done, but it is not limited to transformations
+        \item One could for instance query a database or perform computation of all sorts
+    \end{itemize}
+    \begin{minted}{clojure}
+    (defmacro foo [] (+ 1 2))
+    -> 3
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{A bit of sugar}
+    \begin{itemize}
+        \item Let's look at the simple \emph{when} macro with \emph{(source when)}
+    \end{itemize}
+    \begin{minted}{clojure}
+    (defmacro when
+      ...
+      [test & body]
+      (list 'if test (cons 'do body)))
+    \end{minted}
+    \begin{itemize}
+        \item The ampersand just stands for the rest, so body are all expressions after test.
+        \item Here we create code by creating a list 
+        \item Using the list function is basically the inverse of a syntax quote, everything is evaluated except quoted expressions
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{The \emph{while} loop}
+    \begin{itemize}
+        \item The \emph{while} loop ships with Clojure, here is the source
+    \end{itemize}
+    \begin{minted}{clojure}
+    (defmacro while
+      ...
+      [test & body]
+      `(loop []
+         (when ~test
+           ~@body
+           (recur))))
+    \end{minted}
+    \begin{itemize}
+        \item The loop does not need bindings, since were ware dealing with a while and not a for loop
+        \item The @-sign in front of body unpacks the body list into its elements 
+        \item So 1 2 3 4 \dots instead of (1 2 3 4 \dots)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Pattern Matching in Scheme}
+    \begin{itemize}
+        \item Scheme provides an even more elegant syntax for simple macros with \emph{syntax-rules}
+    \end{itemize}
+    \begin{minted}{scheme}
+    (define-syntax for
+      (syntax-rules (in as)
+         (
+          ;pattern
+          (for element in list body ...)
+          ;template
+          (map (lambda (element) body ...) list)
+         )
+         ((for list as element body ...)
+          (for element in list body ...))))
+
+    (for i in '(1 2 3) (display i))
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Complex Macros}
+    \begin{itemize}
+        \item For time reasons we can't look at more complex macros in detail
+        \item We will look at an example at a higher level
+        \item As an example I have picked the async/await statement from languages like C\# or JS (ECMAScript 2017 draft)
+        \item This is usally done by creating a state machine
+        \item The CSharp code was decompiled to retrieve the state machine
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Async in C\# - Before}
+    \inputminted[fontsize=\footnotesize]{csharp}{csharp-before.cs}
+\end{frame}
+
+\begin{frame}[fragile]{Async in C\# - After}
+    The CLR has no extra byte code instructions for async/await, everything is handled by the compiler 
+    \inputminted[fontsize=\footnotesize]{csharp}{csharp-after.cs}
+\end{frame}
+
+\begin{frame}[fragile]{Async in Clojure with core.async}
+    \begin{itemize}
+        \item In Clojure we don't need dont to wait until a standard comittee adds the feature
+        \item We just use the core.async library implemented purely in Clojure
+        \item core.async uses channels in a technique known as Communicating Sequential Processes
+        \item The syntax will be more familiar to users of the go language
+    \end{itemize}
+    \begin{minted}{clojure}
+    (defn fake-search [kind]
+      (fn [c query]
+        (go
+          (<! (timeout (rand-int 100)))
+          (>! c [kind query]))))
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Async in Clojure with core.async}
+    The \emph{macroexpand} function helps us to examine the macro code
+    \begin{minted}[fontsize=\footnotesize]{clojure}
+(fn state-machine
+  ([state_3730]
+    (loop []
+      (let
+        [result 
+          (case (int (ioc/aget-object state_3730 1))
+           3 (let [inst_3728 (ioc/aget-object state_3730 2)
+                   state_3730 state_3730]
+               (ioc/return-chan state_3730 inst_3728))
+           2 (let [inst_3725 (ioc/aget-object state_3730 2)
+                   inst_3726 (vector kind query)
+                   state_3730 (ioc/aset-all! state_3730 5 inst_3725)]
+               (ioc/put! state_3730 3 c inst_3726))
+           1 (let [inst_3722 (rand-int 100)
+                   inst_3723 (timeout inst_3722)
+                   state_3730 state_3730]
+               (ioc/take! state_3730 2 inst_3723)))]
+    \end{minted}
 \end{frame}
 
 %(defmacro unless [pred then else] `(if ~pred ~else ~then))
@@ -332,6 +526,7 @@
             \item The specific example can be looked up on Scott Meyers Blog
             \item The last call does \emph{not} create an empty list
             \item Even a seasoned C++ expert and book author can't figure out seemingly simple examples
+            \item -> Please don't take the tools Clojure provides for granted
     \end{itemize}
 \end{frame}
 
