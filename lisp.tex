@@ -476,11 +476,11 @@
         \item The syntax will be more familiar to users of the go language
     \end{itemize}
     \begin{minted}{clojure}
-    (defn fake-search [kind]
-      (fn [c query]
-        (go
-          (<! (timeout (rand-int 100)))
-          (>! c [kind query]))))
+    (defn what-is-the-answer [c]
+      (go
+        ;timeout creates a new channel
+        (<! (timeout 2.3652E17))
+        (>! c 42)))
     \end{minted}
 \end{frame}
 
@@ -530,14 +530,143 @@
     \end{itemize}
 \end{frame}
 
+\begin{frame}{Be carefull with Macros}
+    \begin{itemize}
+            \item Use them only when a function won't do
+            \item Macros tend to ``creep'' up the call chain
+            \item Writing good Macros takes quite a bit of practice
+            \item Good Error messages (hello Rust) are now your responsibility
+            \item Since you are now the ``compiler engineer''
+    \end{itemize}
+\end{frame}
+
 \section{Tools and Platforms}
+
+\begin{frame}{Emacs}
+    \begin{itemize}
+            \item The most important IDE for Lisp is of course emacs
+            \item Written in EmacsLisp and with support for pretty much every Lisp dialect
+            \item For Clojure the cider package is recommended
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Emacs}
+    \centering{\includegraphics[width=\textwidth]{img/cider.png}}
+\end{frame}
+
+\begin{frame}{Clojure IDE Support}
+    \begin{itemize}
+            \item For Clojure the two famous IDEs Eclipse and IntelliJ both have support via plugins
+            \item Eclipse has the Counter Clockwise Wise Plugin
+            \item IntelliJ has the (commercial) Cursive IDE
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Eclipse}
+    \centering{\includegraphics[width=\textwidth]{img/ccw.png}}
+\end{frame}
+
+\begin{frame}{IntelliJ}
+    \centering{\includegraphics[width=\textwidth]{img/cursive.png}}
+\end{frame}
+
+\begin{frame}{Vim}
+    \begin{itemize}
+            \item It is of course heresy to use Vim for Lisp, but I do it anyway 
+            \item Tim Pope has written the great fireplace.vim plugin
+            \item Will not be considered a full blown IDE by most people
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Tools}
+    \begin{itemize}
+            \item Most Lisps have tools for project and package/dependency management
+            \item For Clojure there is leiningen and boot, with leiningen being the older and more popular tool
+            \item The key difference is the declarative approach with leiningen, while boot just uses plain clojure logic
+            \item For the web developers there is an analogy: leiningen -> grunt, boot -> gulp
+    \end{itemize}
+\end{frame}
 
 \section{Literature and more obscure Lisp dialects}
 
+
+\begin{frame}{Books on Clojure}
+    The left one is available for free from \url{clojure-buch.de}
+    \vspace{0.5cm}
+\begin{columns}[t]
+\column{.5\textwidth}
+\centering
+\includegraphics[width=3.5cm]{./img/buch.jpg}
+\column{.5\textwidth}
+\centering
+\includegraphics[width=3.5cm]{./img/master.jpg}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Shen Language}
+    \begin{itemize}
+        \item If clojure and scheme are not enough for you, take a look at \url{shenlanguage.org}
+        \item We will briefly look at a few features 
+        \item Static type checking based on the sequent calculus
+        \item Integrated fully functional Prolog (defprolog \dots)
+        \item Inbuilt compiler-compiler (Shen-YACC) based on BNF notation
+        \item Can be used to develop efficient compilers for programming languages and transducers for natural language processing
+        \item \dots The ``Everything but the kitchen sink''-Lisp
+    \end{itemize}
+\end{frame}
+
 \section{Why it never (really) caught on}
 
+\begin{frame}{Performance}
+    \begin{quote}
+        A Lisp programmer knows the value of everything, but the cost of nothing.
+    \end{quote}
+    \hspace*\fill{-- Alan Perlis, American Computer Scientist}
+    \begin{itemize}
+        \item Historically a lot of Lisps features required quite a bit of processing power or special hardware support (see Lisp machines)
+        \item Today that argument is mostly moot 
+        \item The performance of e.g. Clojure is in the same ballpark as most dynamic JVM languages
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Syntax}
+    \begin{quote}
+One of the ideas I keep stressing in the design of Perl is that things that ARE different should LOOK different. The reason many people hate programming in Lisp is because everything looks the same. I've said it before, and I'll say it again: Lisp has all the visual appeal of oatmeal with fingernail clippings mixed in. (Other than that, it's quite a nice language.)
+    \end{quote}
+    \hspace*\fill{-- Larry Wall, Creator of the Perl Language}
+\end{frame}
+
+\begin{frame}{Syntax}
+    \begin{itemize}
+        \item Maybe a gate keeper for language features (a committee or a ``benevolent dictator'') is exactly what you want
+        \item In real businesses it is important that existing code can be understood and altered quickly and cost effectively
+        \item Evolving languages with fixed feature sets may help in the hiring process 
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Tooling}
+    \begin{itemize}
+            \item A lot of Lisp dialects (especially Scheme implementations) tend to isolate themselves from other eco systems
+            \item Most people are not interested in calling C libraries using some FFI
+            \item That only leaves the existing libraries written in that particular dialect
+            \item They have at best emacs support, which just does not cut it anymore in 2017 for most developers
+            \item Refactoring, Linting and Formatting tools (like in languages like go) are often missing
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Community}
+    \begin{itemize}
+            \item The so called ``Smug Lisp Weenie'':
+                \begin{quote}
+                    Someone who is always eager to let you know that whatever it is you're doing would be done better in Lisp.
+                \end{quote}
+            \item Lets just say they have ``strong opinions''
+    \end{itemize}
+\end{frame}
+
 \begin{frame}[standout]
-  Questions?
+    Thank You!
 \end{frame}
 
 \section{Bonus - A bit of History}
