@@ -20,7 +20,6 @@
 \date{25.01.2017}
 \author{Christoph Müller}
 \institute{Offenes Kolloquium für Informatik}
-% \titlegraphic{\hfill\includegraphics[height=1.5cm]{logo.pdf}}
 
 \begin{document}
 
@@ -92,16 +91,16 @@
         \item Either a atom or a list
         \item Atoms are either symbols or literals
         \item Every element of a list is either an atom or another list
-        \item Elements are separated by whitespace
+        \item Elements are separated by whitespace and surrounded with parentheses
         \item The first element of a (to be evaluated) list has to be what we will call a \emph{verb} in this talk
     \end{itemize}
     \begin{minted}{clojure}
-        ;atoms
-        x
-        12
-        ;lists
-        (+ 1 2 3)
-        (+ (* 2 3) 3)
+         ;atoms
+         x
+         12
+         ;lists
+         (+ 1 2 3)
+         (+ (* 2 3) 3)
     \end{minted}
 \end{frame}
 
@@ -128,7 +127,7 @@
     \end{itemize}
     \begin{minted}{clojure}
         ;the + function called as a 
-        ;prefix and not as an infix
+        ;prefix and not as an infix function
         (+ 1 2 3)
         ;the infamous
         (println "hello world")
@@ -158,7 +157,7 @@
 
 \begin{frame}[fragile]{Just a bit more Syntax}
     \begin{itemize}
-            \item Before we will learn how to create our own functions a bit more syntastic sugar
+            \item Before we will learn how to create our own functions, a bit more syntactic sugar
             \item Vectors are the data structure in Clojure that are used to define the arguments of a function
     \end{itemize}
     \begin{minted}{clojure}
@@ -191,7 +190,7 @@
     -> 144
     \end{minted}
     \begin{itemize}
-        \item An optional name can be given to the function to make non tail calls
+        \item An optional name can be given to the function to make non tail recursive calls
     \end{itemize}
     \begin{minted}{clojure}
     ((fn foo [x] (if (< x 1) x (foo (dec x)))) 10)
@@ -376,7 +375,7 @@
     -> (user/foo 6)
     \end{minted}
     \begin{itemize}
-        \item Everything that is not evaluated through the tilde character will be left alone (only the current namespace is added)
+        \item Everything that is not evaluated through the tilde character will be left alone (only the appropriate namespace is added)
     \end{itemize}
 \end{frame}
 
@@ -401,12 +400,30 @@
       ...
       [test & body]
       (list 'if test (cons 'do body)))
+      ;or `(if test ~(cons 'do body)))
     \end{minted}
     \begin{itemize}
         \item The ampersand just stands for the rest, so body are all expressions after test.
         \item Here we create code by creating a list 
         \item Using the list function is basically the inverse of a syntax quote, everything is evaluated except quoted expressions
     \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\emph{macroexpand} to the rescue}
+    \begin{itemize}
+        \item The function \emph{macroexpand} helps us to understand what is going on by expanding the macro one layer
+        \item Let's look at a simple example using \emph{when}
+    \end{itemize}
+    \begin{minted}{clojure}
+        (macroexpand 
+          '(when (< 3 4) 
+            (println "hello")
+            (println "world")))
+        ->
+        (if (< 3 4) 
+          (do (println "hello") 
+              (println "world")))
+    \end{minted}
 \end{frame}
 
 \begin{frame}[fragile]{The \emph{while} loop}
@@ -427,6 +444,18 @@
         \item The @-sign in front of body unpacks the body list into its elements 
         \item So 1 2 3 4 \dots instead of (1 2 3 4 \dots)
     \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{The \emph{while} loop}
+    \begin{minted}{clojure}
+    (macroexpand 
+        '(while (< 3 4)
+          (println "hello world")))
+    ->
+    (loop [] 
+        (clojure.core/when (< 3 4) 
+          (println "hello world") (recur)))
+    \end{minted}
 \end{frame}
 
 \begin{frame}[fragile]{Pattern Matching in Scheme}
@@ -454,8 +483,9 @@
         \item For time reasons we can't look at more complex macros in detail
         \item We will look at an example at a higher level
         \item As an example I have picked the async/await statement from languages like C\# or JS (ECMAScript 2017 draft)
+        \item This much needed feature helps us prevent (among other things) the so called callback hell
         \item This is usally done by creating a state machine
-        \item The CSharp code was decompiled to retrieve the state machine
+        \item The C\# code was decompiled to retrieve the state machine
     \end{itemize}
 \end{frame}
 
@@ -574,6 +604,7 @@
     \begin{itemize}
             \item It is of course heresy to use Vim for Lisp, but I do it anyway 
             \item Tim Pope has written the great fireplace.vim plugin
+            \item It connects over network to an already existing repl
             \item Will not be considered a full blown IDE by most people
     \end{itemize}
 \end{frame}
@@ -670,5 +701,37 @@ One of the ideas I keep stressing in the design of Perl is that things that ARE 
 \end{frame}
 
 \section{Bonus - A bit of History}
+
+\begin{frame}[fragile]{The Cons Cell}
+    \begin{itemize}
+        \item In most Lisp Dialects (not Clojure though) the linked list is not a primitive data type, but implemented using the cons cell
+        \item A cons cell can be thought of as a pair, denoted like (1 . 2)
+        \item Nested cons cells result in a linked list: (1 . (2 . (3 . NIL)))
+        \item The most important operations on cons cell are \emph{cons}, \emph{car} and \emph{cdr} (pronounced could-er)
+        \item The names stem from assembler macros on the IBM 704 from the late 50s
+    \end{itemize}
+    \begin{minted}{common-lisp}
+    (car (cdr '(1 2 3)))
+    ; (first (rest '(1 2 3))) -> 2
+    (cons 1 2); -> (1 . 2)
+    \end{minted}
+\end{frame}
+
+\begin{frame}{M-Expressions}
+\begin{columns}
+	\begin{column}{0.68\textwidth}
+        \begin{itemize}
+            \item John McCarthy originally thought of so called M(eta)-Expressions
+            \item Data represented as S-Expressions were to be manipulated by M-Expressions
+            \item \textbf{car[cons[(A . B); x]]}, square brackets were used for argument lists
+            \item In the first working Lisp implementation, M-Expressions were encoded as S-Expressions
+            \item They never caught on and eventually faded
+        \end{itemize}
+	\end{column}
+	\begin{column}{0.28\textwidth}
+        \centering{\includegraphics[width=\textwidth]{./img/mccarthy.png}}
+	\end{column}
+\end{columns}
+\end{frame}
 
 \end{document}
